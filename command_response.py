@@ -46,15 +46,19 @@ def is_worthy(command_author):
     roles = command_author.roles
     if len(roles) > 0:
         for role in roles:
-            if role.name.lower() == "testrole":
+            if role.name.lower() == 'testrole':
                 return True
-            if role.name.lower() == "zarząd":
+            if role.name.lower() == 'zarząd':
                 return True
-            if role.name.lower() == "community manager":
+            if role.name.lower() == 'community manager':
                 return True
-            if role.name.lower() == "administrator":
+            if role.name.lower() == 'administrator':
                 return True
-            if role.name.lower() == "developer":
+            if role.name.lower() == 'developer':
+                return True
+            if role.name.lower() == 'support':
+                return True
+            if role.name.lower() == 'moderator':
                 return True
 
     return False
@@ -68,11 +72,6 @@ async def on_message(message):
 
     # message is meant for this bot
     if message.content.lower().startswith(('vbot', 'v-bot')):
-
-        # we only process messages from certain users
-        if not is_worthy(message.author):
-            await client.send_message(message.author, 'Nie masz uprawnien do obsługi V-Bota')
-            return
 
         words = message.content.split()
         if len(words) > 1:
@@ -98,23 +97,78 @@ async def on_message(message):
                 return
 
             if words[1].lower() == 'data':
+                # only authorised users can use this command
+                if not is_worthy(message.author):
+                    await client.send_message(message.author, 'Nie masz uprawnien do tej komendy')
+                    await client.delete_message(message)
+                    return
+
                 msg = 'Nazwa kanału: %s' % message.channel.name
                 await client.send_message(message.channel, msg)
                 return
 
-            else:
-                msg = message.author.mention + ' nie zrozumiałem polecenia\n' \
-                                               'Ale nie lękaj się, V-Bot czuwa'
-                await client.send_message(message.channel, msg)
+            if words[1].lower() == 'join':
+                # only authorised users can use this command
+                if not is_worthy(message.author):
+                    await client.send_message(message.author, 'Nie masz uprawnien do tej komendy')
+                    await client.delete_message(message)
+                    return
 
-        else:
+                if len(words) >= 2:
+                    member_joined = message.server.get_member_named(words[2])
+                    if member_joined:
+                        await on_member_join(member_joined)
+                    else:
+                        await client.send_message(message.author, 'Nie znalazłem użytkownika "%s" '
+                                                                  'wśród obecnie aktywnnych.'
+                                                                  'Spróbuj wpisać jego @mention po "join"' % words[2])
+                        await client.delete_message(message)
+                else:
+                    await client.send_message(message.author, 'Podaj nazwę użytkownika po "join"')
+                    await client.delete_message(message)
+                return
+
+            if words[1].lower() == 'maul':
+                # only authorised users can use this command
+                if not is_worthy(message.author):
+                    await client.send_message(message.author, 'Nie masz uprawnien do tej komendy')
+                    await client.delete_message(message)
+                    return
+
+                maul = 'Maul'
+                maul_member = message.server.get_member_named('Maul#4420')
+                if maul_member:
+                    maul = maul_member.mention
+
+                msg = 'Użytkownik %s 10 lipca 2017 o 20:30 napisał:\n' \
+                      '***Wywalcie tego vbota to jest zmarnowanie produktywności ludzkiej ' \
+                      'na coś co i tak nie ma praktycznego zastosowania***' % maul
+
+                await client.send_message(message.channel, msg)
+                return
+
+            # msg = message.author.mention + ' nie zrozumiałem polecenia\n' \
+            #     'Ale nie lękaj się, V-Bot czuwa'
+            # await client.send_message(message.channel, msg)
+            await client.send_message(message.author, 'Nie zrozumiałem polecenia "%s"' % message.content)
+            await client.delete_message(message)
+            return
+
+        elif len(words) == 1:
             msg = message.author.mention + ' nie lękaj się, V-Bot czuwa'
             await client.send_message(message.channel, msg)
 
 
 @client.event
 async def on_member_join(member):
-    pass
+    chan = get_main_channel(member.server)
+    tada = '\U0001F389'
+    msg = '%s **Witamy nowego użytkownika %s!** %s \n Ekipa V-Santos życzy Ci miłej gry na naszym serwerze' \
+        % (tada, member.mention, tada)
+
+    if chan:
+        await client.send_message(chan, msg)
+    return
 
 
 @client.event
