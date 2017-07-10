@@ -3,6 +3,37 @@ import discord
 client = discord.Client()
 
 
+def get_main_channel(server):
+    text_channels = [chan for chan in server.channels if chan.type == discord.ChannelType.text]
+
+    for chan in text_channels:
+        if chan.name == 'general' or chan.name == 'glowny':
+            return chan
+
+    return None
+
+
+def get_pstr(server):
+    pointemoji = None
+    emojiname = None
+
+    if server.name.lower() == 'rasputin':
+        emojiname = 'putin'
+    elif server.name.lower() == 'v-santos.pl':
+        emojiname = 'vsantos'
+
+    if emojiname:
+        for emoji in server.emojis:
+            if emoji.name == emojiname:
+                pointemoji = emoji
+                break
+
+    if pointemoji:
+        return '\n' + str(pointemoji) + ' '
+    else:
+        return '\n- '
+
+
 def is_worthy(command_author):
 
     # Maarrk
@@ -13,17 +44,18 @@ def is_worthy(command_author):
         return True
 
     roles = command_author.roles
-    for role in roles:
-        if role.name.lower() == "testrole":
-            return True
-        if role.name.lower() == "zarząd":
-            return True
-        if role.name.lower() == "community manager":
-            return True
-        if role.name.lower() == "administrator":
-            return True
-        if role.name.lower() == "developer":
-            return True
+    if len(roles) > 0:
+        for role in roles:
+            if role.name.lower() == "testrole":
+                return True
+            if role.name.lower() == "zarząd":
+                return True
+            if role.name.lower() == "community manager":
+                return True
+            if role.name.lower() == "administrator":
+                return True
+            if role.name.lower() == "developer":
+                return True
 
     return False
 
@@ -45,24 +77,8 @@ async def on_message(message):
         words = message.content.split()
         if len(words) > 1:
             if words[1].lower() == 'sens':
-                pointemoji = None
-                emojiname = None
 
-                if message.server.name.lower() == 'rasputin':
-                    emojiname = 'putin'
-                elif message.server.name.lower() == 'v-santos.pl':
-                    emojiname = 'vsantos'
-
-                if emojiname:
-                    for emoji in message.server.emojis:
-                        if emoji.name == emojiname:
-                            pointemoji = emoji
-                            break
-
-                if pointemoji:
-                    pstr = '\n' + str(pointemoji) + ' '
-                else:
-                    pstr = '\n- '
+                pstr = get_pstr(message.server)
 
                 msgs = ['**Zamierzamy zgodnie z planem uruchomić zarówno serwer voice i tekstowy ponieważ:**',
                         'Decyzja o kształcie serwera nie była podjęta w 15 minut, owszem przemyśleliśmy to',
@@ -81,6 +97,11 @@ async def on_message(message):
                 await client.send_message(message.channel, msg)
                 return
 
+            if words[1].lower() == 'data':
+                msg = 'Nazwa kanału: %s' % message.channel.name
+                await client.send_message(message.channel, msg)
+                return
+
             else:
                 msg = message.author.mention + ' nie zrozumiałem polecenia\n' \
                                                'Ale nie lękaj się, V-Bot czuwa'
@@ -92,10 +113,16 @@ async def on_message(message):
 
 
 @client.event
+async def on_member_join(member):
+    pass
+
+
+@client.event
 async def on_ready():
     print('Logged in as')
     print(client.user.name)
     print(client.user.id)
     print('------')
+
 
 client.run('MzMzNjg5NTU4MTgzMDUxMjY0.DEQUPQ.mKyrenL5PF5mBsQOAs3Op3PekYg')
