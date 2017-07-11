@@ -1,5 +1,16 @@
 import discord
 
+import persistent
+import last_fb_post
+
+persistent.lock.acquire()
+try:
+    persistent.load_data()
+except FileNotFoundError:
+    persistent.create_datafile()
+persistent.lock.release()
+
+
 client = discord.Client()
 
 
@@ -96,11 +107,30 @@ async def on_message(message):
                 await client.send_message(message.channel, msg)
                 return
 
+            if words[1].lower() == 'fb':
+                post_content = last_fb_post.get_new_post()
+
+                if post_content:
+                    chan = get_main_channel(message.server)
+                    msg = '**Pojawił się nowy post na fanpage V-Santos!**\n' + post_content
+
+                    if chan:
+                        await client.send_message(chan, msg)
+                        return
+
+                else:
+                    await client.send_message(message.author, 'Nie pobrano żadnego nowego posta z fb')
+                    if not message.channel.type == discord.ChannelType.private:
+                        await client.delete_message(message)
+                    return
+
+
             if words[1].lower() == 'data':
                 # only authorised users can use this command
                 if not is_worthy(message.author):
                     await client.send_message(message.author, 'Nie masz uprawnien do tej komendy')
-                    await client.delete_message(message)
+                    if not message.channel.type == discord.ChannelType.private:
+                        await client.delete_message(message)
                     return
 
                 msg = 'Nazwa kanału: %s' % message.channel.name
@@ -122,17 +152,20 @@ async def on_message(message):
                         await client.send_message(message.author, 'Nie znalazłem użytkownika "%s" '
                                                                   'wśród obecnie aktywnnych.'
                                                                   'Spróbuj wpisać jego @mention po "join"' % words[2])
-                        await client.delete_message(message)
+                        if not message.channel.type == discord.ChannelType.private:
+                            await client.delete_message(message)
                 else:
                     await client.send_message(message.author, 'Podaj nazwę użytkownika po "join"')
-                    await client.delete_message(message)
+                    if not message.channel.type == discord.ChannelType.private:
+                        await client.delete_message(message)
                 return
 
             if words[1].lower() == 'maul':
                 # only authorised users can use this command
                 if not is_worthy(message.author):
                     await client.send_message(message.author, 'Nie masz uprawnien do tej komendy')
-                    await client.delete_message(message)
+                    if not message.channel.type == discord.ChannelType.private:
+                        await client.delete_message(message)
                     return
 
                 maul = 'Maul'
@@ -151,7 +184,8 @@ async def on_message(message):
             #     'Ale nie lękaj się, V-Bot czuwa'
             # await client.send_message(message.channel, msg)
             await client.send_message(message.author, 'Nie zrozumiałem polecenia "%s"' % message.content)
-            await client.delete_message(message)
+            if not message.channel.type == discord.ChannelType.private:
+                await client.delete_message(message)
             return
 
         elif len(words) == 1:
