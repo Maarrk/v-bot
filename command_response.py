@@ -15,11 +15,27 @@ client = discord.Client()
 
 
 def get_main_channel(server):
-    text_channels = [chan for chan in server.channels if chan.type == discord.ChannelType.text]
+    try:
+        text_channels = [chan for chan in server.channels if chan.type == discord.ChannelType.text]
 
-    for chan in text_channels:
-        if chan.name == 'general' or chan.name == 'glowny':
-            return chan
+        for chan in text_channels:
+            if chan.name == 'general' or chan.name == 'glowny':
+                return chan
+    except:
+        return None
+
+    return None
+
+
+def get_news_channel(server):
+    try:
+        text_channels = [chan for chan in server.channels if chan.type == discord.ChannelType.text]
+
+        for chan in text_channels:
+            if chan.name == 'ogloszenia':
+                return chan
+    except:
+        return None
 
     return None
 
@@ -111,11 +127,14 @@ async def on_message(message):
                 post_content = last_fb_post.get_new_post()
 
                 if post_content:
-                    chan = get_main_channel(message.server)
+                    chan = get_news_channel(message.server)
                     msg = '**Pojawił się nowy post na fanpage V-Santos!**\n' + post_content
 
                     if chan:
                         await client.send_message(chan, msg)
+                        return
+                    else:
+                        await client.send_message(message.channel, msg)
                         return
 
                 else:
