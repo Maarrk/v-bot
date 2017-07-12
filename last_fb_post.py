@@ -29,6 +29,6 @@ def get_new_post():
     persistent.save_data()
     persistent.lock.release()
 
-    post_url = 'https://www.facebook.com/%s/posts/%s' % (post_id[0], post_id[1])
+    post_url = '<https://www.facebook.com/%s/posts/%s>' % (post_id[0], post_id[1])
 
     return post_message + '...\n' + post_url

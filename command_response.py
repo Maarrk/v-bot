@@ -160,7 +160,8 @@ async def on_message(message):
                 # only authorised users can use this command
                 if not is_worthy(message.author):
                     await client.send_message(message.author, 'Nie masz uprawnien do tej komendy')
-                    await client.delete_message(message)
+                    if not message.channel.type == discord.ChannelType.private:
+                        await client.delete_message(message)
                     return
 
                 if len(words) >= 2:
@@ -221,6 +222,14 @@ async def on_member_join(member):
 
     if chan:
         await client.send_message(chan, msg)
+
+    msgs_priv = ['**Witaj na naszym serwerze, jestem V-Bot**',
+                 'Wyślę Ci kilka rzeczy które mogą się przydać na początku:',
+                 'Link do forum: <https://forum.v-santos.pl/> *(musisz tam założyć konto żeby zagrać na V-Santos)*',
+                 'Nasz fanpage na Facebook: <https://www.facebook.com/vsantosrp/>',
+                 '**Najczęściej zadawane pytania:** <https://www.facebook.com/vsantosrp/posts/1121559141309289>']
+
+    await client.send_message(member, '\n'.join(msgs_priv))
     return
 
 
