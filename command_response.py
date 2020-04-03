@@ -241,4 +241,4 @@ async def on_ready():
     print('------')
 
 
-client.run('MzMzNjg5NTU4MTgzMDUxMjY0.DEQUPQ.mKyrenL5PF5mBsQOAs3Op3PekYg')
+client.run('put-token-here-if-you-ever-use-it-again')
